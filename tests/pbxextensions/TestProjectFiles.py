@@ -37,12 +37,12 @@ class ProjectFilesTest(unittest.TestCase):
         }
 
     def testInit(self):
-        with self.assertRaisesRegexp(EnvironmentError, '^This class cannot be instantiated directly'):
+        with self.assertRaisesRegex(EnvironmentError, '^This class cannot be instantiated directly'):
             ProjectFiles()
 
     def testAddFileUnknown(self):
         project = XcodeProject(self.obj)
-        with self.assertRaisesRegexp(ValueError, '^Unknown file extension: '):
+        with self.assertRaisesRegex(ValueError, '^Unknown file extension: '):
             project.add_file("file.unknowntype")
 
     def testAddFileUnknownAllowed(self):
@@ -158,6 +158,18 @@ class ProjectFilesTest(unittest.TestCase):
 
         build_file = project.add_file("file.m", force=False)
         self.assertEqual(build_file, [])
+
+    def testAddFileIfExistsToMissingTargets(self):
+        project = XcodeProject(self.obj)
+        build_file = project.add_file("file.m", target_name='app', force=False)
+
+        # 1 source files are created 1 x target
+        self.assertEqual(project.objects.get_objects_in_section(u'PBXSourcesBuildPhase').__len__(), 1)
+        self.assertEqual(build_file.__len__(), 1)
+
+        build_file = project.add_file("file.m", force=False)
+        self.assertEqual(project.objects.get_objects_in_section(u'PBXSourcesBuildPhase').__len__(), 2)
+        self.assertEqual(build_file.__len__(), 1)
 
     def testAddFileOfAllTypes(self):
         for ext in ProjectFiles._FILE_TYPES:

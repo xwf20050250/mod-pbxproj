@@ -3,6 +3,11 @@ from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
 
+try:
+    long_description = open("readme.rst").read()
+except IOError:
+    long_description = ""
+
 # Inspired by the example at https://pytest.org/latest/goodpractises.html
 class NoseTestCommand(TestCommand):
     def finalize_options(self):
@@ -27,6 +32,7 @@ class NoseTestCoverage(TestCommand):
         import nose
         nose.run_exit(argv=['nosetests',
                             '--with-coverage',
+                            '--cover-xml',
                             '--cover-erase',
                             '--cover-branches',
                             '--cover-package=pbxproj',
@@ -53,6 +59,8 @@ def find_version(*file_paths):
 setup(name='pbxproj',
       author='Ignacio Calderon',
       description='XCode Project manipulation library for Python',
+      long_description=long_description,
+      long_description_content_type='text/markdown',
       entry_points={
         "console_scripts": [
             'pbxproj = pbxproj.__main__:main',
@@ -64,7 +72,7 @@ setup(name='pbxproj',
       url="http://github.com/kronenthaler/mod-pbxproj",
       version=find_version("pbxproj", "__init__.py"),
       license='MIT License',
-      install_requires=['openstep_parser>=1.3.1', 'docopt', 'future'],
+      install_requires=['openstep_parser>=1.5.1', 'docopt'],
       packages=find_packages(exclude=['tests']),
       setup_requires=['nose', 'coverage'],
       cmdclass={'test': NoseTestCommand, 'coverage': NoseTestCoverage})

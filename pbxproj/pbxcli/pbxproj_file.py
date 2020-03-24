@@ -19,6 +19,7 @@ generic options:
                                        SOURCE_ROOT, SDKROOT, DEVELOPER_DIR, BUILT_PRODUCTS_DIR. [default: SOURCE_ROOT]
     -t, --target <target>          Target name(s) to be modified. If there is no target specified, all targets are
                                        modified.
+    --parent <parent>              Parent to use when adding the file (uses project root if not given).
     -b, --backup                   Creates a backup before start processing the command.
 
 delete options:
@@ -40,32 +41,37 @@ from docopt import docopt
 
 def execute(project, args):
     # make a decision of what function to call based on the -D flag
-    if args[u'--delete']:
+    if args['--delete']:
         return _remove(project, args)
     else:
         return _add(project, args)
 
 
 def _add(project, args):
-    if u'--header-scope' not in args or args[u'--header-scope'] not in ['public', 'private', 'project']:
-        header_scope = u'project'
+    if '--header-scope' not in args or args['--header-scope'] not in ['public', 'private', 'project']:
+        header_scope = 'project'
     else:
-        header_scope = args[u'--header-scope']
+        header_scope = args['--header-scope']
 
-    options = FileOptions(create_build_files=not args[u'--no-create-build-files'],
-                          weak=args[u'--weak'],
-                          ignore_unknown_type=args[u'--ignore-unknown-types'],
-                          embed_framework=not args[u'--no-embed'],
-                          code_sign_on_copy=args[u'--sign-on-copy'],
+    parent_group = None
+    if args['--parent']:
+        parent_group = project.get_or_create_group(args['--parent'])
+
+    options = FileOptions(create_build_files=not args['--no-create-build-files'],
+                          weak=args['--weak'],
+                          ignore_unknown_type=args['--ignore-unknown-types'],
+                          embed_framework=not args['--no-embed'],
+                          code_sign_on_copy=args['--sign-on-copy'],
                           header_scope=header_scope.title())
-    build_files = project.add_file(args[u'<path>'], tree=args[u'--tree'], force=False, target_name=args[u'--target'],
-                                   file_options=options)
+    build_files = project.add_file(args['<path>'], tree=args['--tree'], force=False, target_name=args['--target'],
+                                    parent=parent_group, file_options=options)
+
     # print some information about the build files created.
     if build_files is None:
-        raise Exception(u'No files were added to the project.')
+        raise Exception('No files were added to the project.')
 
     if not build_files:
-        return u'File added to the project, no build file sections created.'
+        return 'File added to the project, no build file sections created.'
 
     info = {}
     for build_file in build_files:
@@ -73,16 +79,16 @@ def _add(project, args):
             info[build_file.isa] = 0
         info[build_file.isa] += 1
 
-    summary = u'File added to the project.'
+    summary = 'File added to the project.'
     for k in info:
-        summary += u'\n{0} {1} sections created.'.format(info[k], k)
+        summary += '\n{0} {1} sections created.'.format(info[k], k)
     return summary
 
 
 def _remove(project, args):
-    if project.remove_files_by_path(args[u'<path>'], tree=args[u'--tree'], target_name=args[u'--target']):
-        return u'File removed from the project.'
-    raise Exception(u'An error occurred removing one of the files.')
+    if project.remove_files_by_path(args['<path>'], tree=args['--tree'], target_name=args['--target']):
+        return 'File removed from the project.'
+    raise Exception('An error occurred removing one of the files.')
 
 
 def main():

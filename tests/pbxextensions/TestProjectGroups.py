@@ -28,7 +28,7 @@ class ProjectGroupsTest(unittest.TestCase):
         }
 
     def testInit(self):
-        with self.assertRaisesRegexp(EnvironmentError, '^This class cannot be instantiated directly'):
+        with self.assertRaisesRegex(EnvironmentError, '^This class cannot be instantiated directly'):
             ProjectGroups()
 
     def testGetGroupsByNameNoParent(self):
@@ -69,13 +69,13 @@ class ProjectGroupsTest(unittest.TestCase):
 
     def testAddGroupNoParent(self):
         project = XcodeProject(self.obj)
-        group = project.add_group("my_group")
+        group = project.add_group('my_group')
 
         self.assertTrue(project.objects['root'].has_child(group))
 
     def testAddGroupToParent(self):
         project = XcodeProject(self.obj)
-        group = project.add_group("my_group", parent=project.objects['1'])
+        group = project.add_group('my_group', parent=project.objects['1'])
 
         self.assertTrue(project.objects['1'].has_child(group))
 
